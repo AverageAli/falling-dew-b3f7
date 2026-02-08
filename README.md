@@ -1,60 +1,97 @@
-# Astro Starter Kit: Blog
+# KurdSmart (Windows Desktop App)
 
-![Astro Template Preview](https://github.com/withastro/astro/assets/2244813/ff10799f-a816-4703-b967-c78997e8323d)
+KurdSmart is a **Windows-only**, offline-first Kurdish language learning desktop application built with **Python 3.11+**, **PySide6**, and **SQLite**.
 
-<!-- dash-content-start -->
+It is designed for serious learners who need a fast assistant for:
+- Dictionary lookup (Kurdish ↔ Persian ↔ English)
+- Domain-specific vocabulary (general, medical, technical)
+- Sentence generation and sentence analysis
+- Pronunciation (text-to-speech) with adjustable speed
+- Dialect awareness (Sorani, Kurmanji)
+- Interactive exercises
+- Saved vocabulary review
 
-Create a blog with Astro and deploy it on Cloudflare Workers as a [static website](https://developers.cloudflare.com/workers/static-assets/).
+## Project Layout
 
-Features:
-
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and OpenGraph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
-
-<!-- dash-content-end -->
-
-## Getting Started
-
-Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
-
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/falling-dew-b3f7
+```text
+kurdsmart/
+  app.py                         # Entry point
+  requirements.txt
+  kurdsmart/
+    __init__.py
+    main_window.py               # PySide6 GUI and UI flow
+    database.py                  # SQLite schema + seed data
+    workers.py                   # Generic QThread worker utility
+    services/
+      dictionary_service.py
+      sentence_service.py
+      practice_service.py
+      tts_service.py
 ```
 
-A live public deployment of this template is available at [https://falling-dew-b3f7.templates.workers.dev](https://falling-dew-b3f7.templates.workers.dev)
+## Quick Start (Development)
 
-## 🚀 Project Structure
+1. Create a Python 3.11+ environment on Windows.
+2. Install dependencies:
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+```bash
+pip install -r kurdsmart/requirements.txt
+```
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+3. Run the app:
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
+```bash
+python kurdsmart/app.py
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+The app creates a local SQLite database automatically at:
 
-## 🧞 Commands
+```text
+%USERPROFILE%\AppData\Local\KurdSmart\kurdsmart.db
+```
 
-All commands are run from the root of the project, from a terminal:
+## Design Notes
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-| `npm run deploy`          | Deploy your production site to Cloudflare        |
+- **No UI freezing:** TTS operations run in background threads using `QThread` worker pattern.
+- **Offline-first:** core dictionary/exercises are bundled as SQLite seed data.
+- **Expandable dialect/content model:** dialect and domain fields are explicit in schema.
+- **Tutor-like UX:** focused tabs (Dictionary, Sentences, Practice, Saved Vocabulary), simple controls, and immediate feedback.
 
-## 👀 Want to learn more?
+## Build Windows `.exe` with PyInstaller
 
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Install PyInstaller:
 
-## Credit
+```bash
+pip install pyinstaller
+```
 
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+Create one-folder executable:
+
+```bash
+pyinstaller --noconfirm --windowed --name KurdSmart --paths kurdsmart kurdsmart/app.py
+```
+
+Output will be in:
+
+```text
+dist/KurdSmart/
+```
+
+Create one-file executable (optional):
+
+```bash
+pyinstaller --noconfirm --windowed --onefile --name KurdSmart --paths kurdsmart kurdsmart/app.py
+```
+
+## Notes for Pronunciation
+
+- TTS is implemented via `pyttsx3` (offline engine, suitable for Windows/SAPI voices).
+- If TTS backend is unavailable, the app reports a clear message and continues functioning.
+
+## Future Production Extensions
+
+- More comprehensive lexical database import pipeline
+- Spaced repetition scheduling for saved words
+- Audio caching
+- Rich grammar diagnostics and error explanation engine
+- Additional dialect packs and custom lessons
