@@ -1,0 +1,12 @@
+<!doctype html>
+<html><body>
+<h1>Prompt Editor</h1>
+{% for prompt in prompts %}
+<form method='post' action='/prompts/{{prompt.id}}'>
+  <h3>{{prompt.key}}</h3>
+  <textarea name='body' rows='4' cols='100'>{{prompt.body}}</textarea>
+  <button type='submit'>Save</button>
+</form>
+{% endfor %}
+<p><a href='/'>Back</a></p>
+</body></html>

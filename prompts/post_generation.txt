@@ -1,0 +1,5 @@
+You are a brand strategist. Create one channel-ready post about {topic}.
+Constraints:
+- Keep voice: {voice}
+- Include concise hook, educational body, and CTA.
+- Optimize for engagement and shareability.
