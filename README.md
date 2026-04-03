@@ -1,60 +1,126 @@
-# Astro Starter Kit: Blog
+# Telegram Bot Platform (FastAPI + Telegram + Ollama)
 
-![Astro Template Preview](https://github.com/withastro/astro/assets/2244813/ff10799f-a816-4703-b967-c78997e8323d)
+Production-oriented Python platform for:
+- Daily Telegram channel content automation
+- Private AI assistant in DMs
+- Safe medical Q&A mode with disclaimers and red-flag escalation
+- Admin dashboard for operations, prompt editing, analytics, and backups
 
-<!-- dash-content-start -->
+## Project Structure
 
-Create a blog with Astro and deploy it on Cloudflare Workers as a [static website](https://developers.cloudflare.com/workers/static-assets/).
-
-Features:
-
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and OpenGraph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
-
-<!-- dash-content-end -->
-
-## Getting Started
-
-Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
-
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/falling-dew-b3f7
+```text
+app/
+  ai/
+    ollama_client.py
+  bot/
+    telegram_bot.py
+  dashboard/
+    app.py
+    templates/
+      dashboard.html
+      prompts.html
+      sandbox.html
+  database/
+    base.py
+    init_db.py
+    models.py
+    session.py
+  scheduler/
+    jobs.py
+    scheduler.py
+  schemas/
+    common.py
+  services/
+    ai_service.py
+    assistant_service.py
+    auth_service.py
+    audit_service.py
+    backup_service.py
+    content_service.py
+    prompt_service.py
+    rate_limit_service.py
+    safety_service.py
+  utils/
+    logging.py
+  config.py
+  main.py
+prompts/
+  assistant_reply.txt
+  medical_qa.txt
+  post_generation.txt
+scripts/
+  start.py
+tests/
+  test_content.py
+  test_safety.py
+requirements.txt
+.env.example
 ```
 
-A live public deployment of this template is available at [https://falling-dew-b3f7.templates.workers.dev](https://falling-dew-b3f7.templates.workers.dev)
+## Features Implemented
 
-## 🚀 Project Structure
+- Channel automation: draft variants, approval, scheduling, duplicate prevention, A/B variant tagging, engagement scoring.
+- Assistant: session memory, bilingual behavior via prompting, summarization updates.
+- Medical safety: disclaimer injection, red-flag detection, uncertainty-oriented prompt.
+- Dashboard: basic-auth authentication, post generation/approval, prompt editor, prompt sandbox, backup endpoint, recent jobs/messages/logs view.
+- Scheduler: persistent APScheduler jobs backed by SQLAlchemy job store.
+- Reliability: structured JSON logging, retries for Ollama calls, health endpoint, rate limiting.
+- Migration-ready ORM and default SQLite support; PostgreSQL ready by changing `DATABASE_URL`.
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Setup
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+1. Create virtualenv and install deps:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+2. Configure env:
+   ```bash
+   cp .env.example .env
+   ```
+3. Ensure Ollama is running and model exists:
+   ```bash
+   ollama pull qwen2.5:7b
+   ollama serve
+   ```
+4. Initialize DB:
+   ```bash
+   python -m app.database.init_db
+   ```
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
+## Run (One Command)
 
-Any static assets, like images, can be placed in the `public/` directory.
+```bash
+python scripts/start.py
+```
 
-## 🧞 Commands
+This starts:
+- FastAPI dashboard on `http://localhost:8000`
+- Telegram bot polling
+- APScheduler background jobs
 
-All commands are run from the root of the project, from a terminal:
+## Health Check
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-| `npm run deploy`          | Deploy your production site to Cloudflare        |
+```bash
+curl http://localhost:8000/health
+```
 
-## 👀 Want to learn more?
+## Backup / Restore
 
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- Export backup: `GET /backup` (creates `backups/latest_backup.json`)
+- Restore example usage in Python:
 
-## Credit
+```python
+from app.database.session import SessionLocal
+from app.services.backup_service import BackupService
 
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+with SessionLocal() as db:
+    BackupService(db).import_json('backups/latest_backup.json')
+```
+
+## Testing
+
+```bash
+pytest -q
+```

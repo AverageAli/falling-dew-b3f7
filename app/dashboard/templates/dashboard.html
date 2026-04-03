@@ -1,0 +1,18 @@
+<!doctype html>
+<html><body>
+<h1>Telegram Bot Admin</h1>
+<form method='post' action='/posts/generate'>
+  <input name='topic' placeholder='topic' />
+  <button type='submit'>Generate Drafts</button>
+</form>
+<h2>Recent Posts</h2>
+<ul>
+{% for post in posts %}
+  <li>[{{post.status}}] {{post.title}} ({{post.engagement_score}})
+  <form method='post' action='/posts/{{post.id}}/approve' style='display:inline'><button type='submit'>Approve</button></form></li>
+{% endfor %}
+</ul>
+<h2>Recent Jobs</h2><ul>{% for job in jobs %}<li>{{job.job_name}} - {{job.status}} - {{job.ran_at}}</li>{% endfor %}</ul>
+<h2>Recent Messages</h2><ul>{% for m in messages %}<li>{{m.role}}: {{m.content[:120]}}</li>{% endfor %}</ul>
+<p><a href='/prompts'>Prompt Editor</a> | <a href='/sandbox'>Prompt Sandbox</a> | <a href='/backup'>Backup</a></p>
+</body></html>
